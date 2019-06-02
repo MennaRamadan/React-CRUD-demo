@@ -1,14 +1,11 @@
 import React, { Component } from "react";
-import axios from "axios";
+import {ToastContainer} from 'react-toastify';
 import "./App.css";
+import http from './services/httpService';
+import 'react-toastify/dist/ReactToastify.css';
+import config from './config.json';
 
-axios.interceptors.response.use(null, error => {      
-  console.log('Logging the error', ex);
-  alert('An unexpedted error occurred');
-  return Promise.reject(error);
-});
 
-const apiEndPoint = "https://jsonplaceholder.typicode.com/posts";
 class App extends Component {
   state = {
     posts: []
@@ -17,21 +14,21 @@ class App extends Component {
   async componentDidMount(){
     //promise as it is async request need more time
     //pending  > resolved (success ) Reject(faliure)
-    const {data: posts} = await axios.get(apiEndPoint);
+    const {data: posts} = await http.get(config.apiEndPoint);
     this.setState({posts});
   }
 
    handleAdd = async () => {
     const object = {title: 'a', body: "test"};
-    const {data: post} = await axios.post(apiEndPoint, object);
+    const {data: post} = await http.post(config.apiEndPoint, object);
     const posts = [post, ...this.state.posts]
     this.setState({posts});
   };
 
   handleUpdate = async post => {
     post.title = "updated Title";
-    await axios.put(apiEndPoint + '/' + post.id, post); //update all objcet
-    // axios.patch(apiEndPoint + '/' + post.id , {title: post.title}); //specific item
+    await http.put(config.apiEndPoint + '/' + post.id, post); //update all objcet
+    // http.patch(config.apiEndPoint + '/' + post.id , {title: post.title}); //specific item
 
     const posts = [...this.state.posts];
     const index  = posts.indexOf(post);
@@ -47,15 +44,13 @@ class App extends Component {
     this.setState({posts});
 
     try{
-      await axios.delete(apiEndPoint + '/' + post.id);
+      await http.delete(config.apiEndPoint + '/' + post.id);
       throw new Error("");
     }
     catch(ex){
-      console.log("HANDLE DELETE CATCH BLOCK");
       //handling expected errors
       if(ex.response && ex.response.status === 404)
         alert("This post has already been deleted");
- 
 
       this.setState({originalPosts});
     }
@@ -64,6 +59,7 @@ class App extends Component {
   render() {
     return (
       <React.Fragment>
+        <ToastContainer/>
         <button className="btn btn-primary" onClick={this.handleAdd}>
           Add
         </button>
